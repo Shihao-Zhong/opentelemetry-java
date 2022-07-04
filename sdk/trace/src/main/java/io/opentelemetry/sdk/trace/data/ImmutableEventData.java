@@ -21,8 +21,7 @@ abstract class ImmutableEventData implements EventData {
    * @param name the name of the {@code Event}.
    * @param attributes the attributes of the {@code Event}.
    * @return a new immutable {@code Event<T>}
-   */ConfigHttpServer
-      OpenTelemetrySdkConfig
+   */
   static EventData create(long epochNanos, String name, Attributes attributes) {
     return create(epochNanos, name, attributes, attributes.size());
   }

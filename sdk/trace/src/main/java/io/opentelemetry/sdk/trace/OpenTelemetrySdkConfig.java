@@ -1,8 +1,7 @@
 package io.opentelemetry.sdk.trace;
 
 import java.util.concurrent.ConcurrentHashMap;
-import org.json.simple.JSONObject;
-
+import java.util.logging.Logger;
 
 public class OpenTelemetrySdkConfig {
 
@@ -14,44 +13,45 @@ public class OpenTelemetrySdkConfig {
   }
 
   private static final OpenTelemetrySdkConfig sdkConfig = new OpenTelemetrySdkConfig();
-  private static final ConcurrentHashMap<String, Boolean> config = new ConcurrentHashMap<String, Boolean>();
+  private final static ConcurrentHashMap<String, Boolean> config = new ConcurrentHashMap<>();
+  private static final Logger LOGGER = Logger.getLogger( OpenTelemetrySdkConfig.class.getName() );
 
   public static OpenTelemetrySdkConfig getSdkConfig() {
     return sdkConfig;
   }
 
-  public static void setConfig(JSONObject obj) {
-/*
-    Iterator<?> keys = obj.keySet().iterator();
-    while(keys.hasNext()) {
-      String key = (String) keys.next();
-      OpenTelemetrySdkConfig.config.put(key, (Boolean)obj.get(key));
+  public static void setConfig(String[] pairs) {
+    for (String pair: pairs) {
+      String[] data = pair.split("=");
+      if (data.length == 2) {
+        OpenTelemetrySdkConfig.config.put(data[0], Integer.parseInt(data[1]) == 1);
+      }
     }
-    */
-    for (Object key : obj.keySet()) {
-      OpenTelemetrySdkConfig.config.put((String)key, (Boolean)obj.get(key));
-    }
-    /*
-    obj.keySet().forEach(key ->
-    {
-      Boolean value = (Boolean) obj.get(key);
-      OpenTelemetrySdkConfig.config.put((String)key, value);
-    });
-*/
   }
-
 
   public static ConcurrentHashMap<String, Boolean> getConfig() {
     return OpenTelemetrySdkConfig.config;
   }
 
   public static boolean get(String spanName) {
-    if (OpenTelemetrySdkConfig.config.containsKey(spanName)) {
+    if (OpenTelemetrySdkConfig.config.containsKey("*")) {
+      LOGGER.warning("incoming spanName: [" + spanName + "]");
+      return OpenTelemetrySdkConfig.config.get("*");
+    } else if (OpenTelemetrySdkConfig.config.containsKey(spanName)) {
+      LOGGER.warning("incoming spanName: [" + spanName + "]" + OpenTelemetrySdkConfig.config.get(spanName));
+
       return OpenTelemetrySdkConfig.config.get(spanName);
     } else {
+      LOGGER.warning("incoming spanName: [" + spanName + "]not set");
+      LOGGER.warning(
+          OpenTelemetrySdkConfig.config.toString() + OpenTelemetrySdkConfig.config.containsKey(
+              spanName));
       return true;
     }
   }
+
+  public static String toResponseString() {
+    return OpenTelemetrySdkConfig.config.toString();
+  }
+
 }
-
-

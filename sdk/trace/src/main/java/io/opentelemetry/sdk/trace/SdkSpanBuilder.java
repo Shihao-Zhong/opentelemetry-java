@@ -29,11 +29,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 import javax.annotation.Nullable;
 
 /** {@link SdkSpanBuilder} is SDK implementation of {@link SpanBuilder}. */
 final class SdkSpanBuilder implements SpanBuilder {
 
+  private static final Logger LOGGER = Logger.getLogger( OpenTelemetrySdkConfig.class.getName() );
   private final String spanName;
   private final InstrumentationLibraryInfo instrumentationLibraryInfo;
   private final TracerSharedState tracerSharedState;
@@ -55,6 +57,8 @@ final class SdkSpanBuilder implements SpanBuilder {
     this.instrumentationLibraryInfo = instrumentationLibraryInfo;
     this.tracerSharedState = tracerSharedState;
     this.spanLimits = spanLimits;
+    OpenTelemetrySdkConfig.getSdkConfig();
+
   }
 
   @Override
@@ -193,7 +197,13 @@ final class SdkSpanBuilder implements SpanBuilder {
 
     TraceState samplingResultTraceState =
         samplingResult.getUpdatedTraceState(parentSpanContext.getTraceState());
-    SpanContext spanContext =
+    SpanContext spanContext;
+
+    if (OpenTelemetrySdkConfig.get(spanName) == false && parent != null) {
+      LOGGER.warning("span [" + spanName + "] is disable");
+      return parentSpan;
+    }
+    spanContext =
         ImmutableSpanContext.create(
             traceId,
             spanId,
@@ -214,6 +224,11 @@ final class SdkSpanBuilder implements SpanBuilder {
     // startSpan is called. If that happens all the attributes will be added in a new map.
     AttributesMap recordedAttributes = attributes;
     attributes = null;
+
+    if (OpenTelemetrySdkConfig.get(spanName) == false) {
+      LOGGER.warning("root span [" + spanName + "] is disable");
+      return parentSpan;
+    }
 
     return SdkSpan.startSpan(
         spanContext,
