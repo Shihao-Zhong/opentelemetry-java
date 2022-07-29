@@ -26,6 +26,8 @@ dependencies {
 
   implementation(project(":semconv"))
 
+  api("com.googlecode.json-simple:json-simple:1.1.1")
+
   annotationProcessor("com.google.auto.value:auto-value")
 
   testAnnotationProcessor("com.google.auto.value:auto-value")
